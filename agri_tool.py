@@ -142,7 +142,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ⚠️ 确保使用有效 API Key 
-API_KEY = "我的API_KEY呀哈哈" 
+API_KEY = st.secrets["DEEPSEEK_API_KEY"] 
 client = OpenAI(api_key=API_KEY, base_url="https://api.deepseek.com")
 
 # ==========================================
