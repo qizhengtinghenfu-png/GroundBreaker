@@ -42,7 +42,6 @@ st.markdown("""
     h1, h2, h3, h4, h5, h6 { color: #FFFFFF !important; font-weight: 600 !important; }
     p, label, .stMarkdown, .stText { color: #E8EAED !important; }
     
-    /* ========================================================= */
     /* 💥 痛点 1：只精准隐藏滚动箭头，绝对不隐藏选项卡本身！ */
     button[aria-label="Scroll right"], button[aria-label="Scroll left"],
     div[data-testid="stTabs"] button[kind="icon"] {
@@ -57,9 +56,7 @@ st.markdown("""
         pointer-events: auto !important;
         visibility: visible !important;
     }
-    /* ========================================================= */
 
-    /* ========================================================= */
     /* 💥 痛点 2 & 5：强制所有输入框（登录/注册/聊天栏）为 白底黑字！绝对清晰！ */
     div[data-baseweb="input"] > div,
     div[data-baseweb="base-input"],
@@ -81,7 +78,6 @@ st.markdown("""
         -webkit-text-fill-color: #666666 !important; 
         font-weight: 400 !important;
     }
-    /* ========================================================= */
 
     /* 强制聊天框右侧发送按钮醒目化 */
     [data-testid="stChatInputSubmit"] {
@@ -90,7 +86,6 @@ st.markdown("""
     }
     [data-testid="stChatInputSubmit"] svg { fill: #FFFFFF !important; color: #FFFFFF !important; }
 
-    /* ========================================================= */
     /* 💥 痛点 3：上传文件框（Upload、200MB等）字体绝对提纯显眼 */
     [data-testid="stFileUploadDropzone"] {
         background-color: #1A1F26 !important;
@@ -104,7 +99,6 @@ st.markdown("""
         -webkit-text-fill-color: #FFFFFF !important;
         font-weight: bold !important;
     }
-    /* ========================================================= */
 
     /* 下拉选择框（X轴、Y轴、图表选择）字迹清晰化 */
     div[data-baseweb="select"] { background-color: #FFFFFF !important; border: 2px solid #C87A5D !important; border-radius: 6px !important; }
@@ -141,7 +135,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ⚠️ 确保使用有效 API Key 
+# ⚠️ 读取云端 API Key 
 API_KEY = st.secrets["DEEPSEEK_API_KEY"] 
 client = OpenAI(api_key=API_KEY, base_url="https://api.deepseek.com")
 
@@ -242,12 +236,15 @@ st.sidebar.markdown(f"### 👤 欢迎, {st.session_state.current_user}\n<span st
 st.sidebar.header("🧭 功能导航")
 menu = st.sidebar.radio("请选择模块", ["📄 1. 文献快速解析", "📊 2. 实验数据作图", "🔭 3. 研究盲点洞察"])
 
-# 💥 痛点 4：登出按钮移至模块3的正下方
+# 登出按钮
 st.sidebar.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
 if st.sidebar.button("🚪 登出系统", use_container_width=True):
     st.session_state.logged_in = False
     st.rerun()
 
+# ==========================================
+# 模块 1：文献解析
+# ==========================================
 if menu == "📄 1. 文献快速解析":
     st.header("💬 智能文献对话")
     uploaded_pdf = st.file_uploader("📥 请上传文献 (PDF格式)", type="pdf")
@@ -258,18 +255,28 @@ if menu == "📄 1. 文献快速解析":
                 st.session_state.pdf_text = "".join([doc.load_page(i).get_text() for i in range(min(4, len(doc)))]).encode('utf-8', 'ignore').decode('utf-8')
                 st.session_state.current_file = uploaded_pdf.name
                 st.session_state.messages = [{"role": "assistant", "content": "🎉 文献已成功载入！你可以直接提问，或点击生成总结。"}]
+        
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"], avatar="🤖" if msg["role"] == "assistant" else "🧑‍🌾"): st.markdown(msg["content"])
+        
         st.write("") 
         c1, c2, c3 = st.columns([2, 2, 1])
         d_txt, a_pmt = None, None
+        
         with c1:
-            if st.button("🐣 生成小白版总结", use_container_width=True): d_txt, a_pmt = "帮我生成小白版总结！", "你是一位在B站拥有百万粉丝的农学知识区UP主，也是一个脱口秀段子手。请用最受中国年轻人欢迎的互联网语境再加上脱口秀段子手的风格解读这篇文献：1.核心故事 2.用的绝招 3.还有啥坑没填。【最高红线】：绝对禁止任何与恋爱、两性、婚姻、犯罪或违禁品相关的拟人化比喻！【风格要求】：请用单口喜剧的节奏，多使用中国本土的“高级梗”。例如：把植物和微生物的互动比作“甲方乙方”、“打工人抱大腿”、“发送微信验证码”；把基因或物质比作“叠buff”、“开物理外挂”、“充值氪金”或“卡BUG”。语言要犀利、爆笑且充满当代年轻人的共鸣。"
+            if st.button("🐣 生成小白版总结", use_container_width=True): 
+                d_txt = "帮我生成小白版总结！"
+                a_pmt = "你是一位在B站拥有百万粉丝的农学知识区UP主，也是一个脱口秀段子手。请用最受中国年轻人欢迎的互联网语境再加上脱口秀段子手的风格解读这篇文献：1.核心故事 2.用的绝招 3.还有啥坑没填。【最高红线】：绝对禁止任何与恋爱、两性、婚姻、犯罪或违禁品相关的拟人化比喻！【风格要求】：请用单口喜剧的节奏，多使用中国本土的“高级梗”。例如：把植物和微生物的互动比作“甲方乙方”、“打工人抱大腿”、“发送微信验证码”；把基因或物质比作“叠buff”、“开物理外挂”、“充值氪金”或“卡BUG”。语言要犀利、爆笑且充满当代年轻人的共鸣。"
+        
         with c2:
-            if st.button("🔬 生成专家版总结", use_container_width=True): d_txt, a_pmt = "帮我生成专家版总结！", "你是一位顶刊（如Nature/Cell子刊）的资深审稿人兼心狠手辣的课题组老板。请为你的博士生进行这篇文献的硬核拆解，严禁平铺直叙的废话！必须包含以下四大模块：1. 【发刊护城河】：一句话说清这篇论文凭什么能发（核心创新点或绝杀机制）。2. 【硬核技术栈】：不要报流水账，直接提炼他们用了什么最值钱、最值得我们实验室复刻的实验技术或数据分析流。3. 【审稿人的凝视】：用Reviewer #2的毒辣眼光，指出这篇论文的致命软肋（如逻辑跳跃、样本局限、田间转化难度）。4.【直接引用语料（神级功能）】：请为用户生成3句可以直接Copy到他们自己论文中的英文或者中文引用句（分别对应：放在引言做背景、放在讨论部分做机制对比、放在展望部分做未解之谜）。5. 【课题“借鉴”指南（最高价值）】：如果我们想把它的核心思路“平移”到我们自己的农学物种上（换汤不换药），请给出1-2个极具可行性的、能发SCI的延伸课题思路。"
+            if st.button("🔬 生成专家版总结", use_container_width=True): 
+                d_txt = "帮我生成专家版总结！"
+                a_pmt = "你是一位顶刊（如Nature/Cell子刊）的资深审稿人兼心狠手辣的课题组老板。请为你的博士生进行这篇文献的硬核拆解，严禁平铺直叙的废话！必须包含以下四大模块：1. 【发刊护城河】：一句话说清这篇论文凭什么能发（核心创新点或绝杀机制）。2. 【硬核技术栈】：不要报流水账，直接提炼他们用了什么最值钱、最值得我们实验室复刻的实验技术或数据分析流。3. 【审稿人的凝视】：用Reviewer #2的毒辣眼光，指出这篇论文的致命软肋（如逻辑跳跃、样本局限、田间转化难度）。4.【直接引用语料（神级功能）】：请为用户生成3句可以直接Copy到他们自己论文中的中英文引用句（分别对应：引言做背景、讨论做机制对比、展望做未解之谜）。5. 【课题“借鉴”指南（最高价值）】：如果我们想把它的核心思路“平移”到我们自己的农学物种上，请给出1-2个极具可行性的、能发SCI的延伸课题思路。"
+        
         with c3:
             chat_hist = "\n\n".join([f"{'AI' if m['role']=='assistant' else '我'}:\n{m['content']}" for m in st.session_state.messages])
             st.download_button("📥 导出记录", data=chat_hist.encode('utf-8'), file_name="对话记录.txt", use_container_width=True)
+        
         u_in = st.chat_input("输入问题检索文献细节 💬")
         if d_txt or u_in:
             f_disp, f_api = d_txt if d_txt else u_in, a_pmt if a_pmt else u_in
@@ -285,6 +292,9 @@ if menu == "📄 1. 文献快速解析":
                         st.markdown(ans); st.session_state.messages.append({"role": "assistant", "content": ans})
                     except Exception as e: st.error(f"服务异常：{e}")
 
+# ==========================================
+# 模块 2：实验数据作图
+# ==========================================
 elif menu == "📊 2. 实验数据作图":
     st.header("🎨 数据可视化中心")
     if "show_plot" not in st.session_state: st.session_state.show_plot = False
@@ -305,7 +315,9 @@ elif menu == "📊 2. 实验数据作图":
             elif c_typ.startswith("9"): c1, c2 = st.columns(2); cat_col, val_col = c1.selectbox("分类列", cols, index=0), c2.selectbox("数值列", cols, index=1 if len(cols)>1 else 0)
             elif c_typ.startswith("10"): hue_col = st.selectbox("分组标记列", cols)
             sub = st.form_submit_button("✨ 一键生成图表", use_container_width=True)
+        
         if sub: st.session_state.show_plot, st.session_state.ai_mods = True, []
+        
         if st.session_state.show_plot:
             st.divider()
             fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
@@ -332,6 +344,7 @@ elif menu == "📊 2. 实验数据作图":
                     n_df = df.select_dtypes(include=[np.number]).dropna(); sc = StandardScaler().fit_transform(n_df); pca = PCA(n_components=2)
                     d_pca = pd.DataFrame(data=pca.fit_transform(sc), columns=['PC1', 'PC2']); d_pca['Group'] = df[hue_col].values[:len(d_pca)]
                     sns.scatterplot(data=d_pca, x='PC1', y='PC2', hue='Group', palette="bright", s=80, ax=ax); ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)", fontweight='bold'); ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)", fontweight='bold')
+                
                 if not c_typ.startswith(("5", "9")): sns.despine(); ax.set_xlabel(x_col if 'x_col' in locals() and x_col else "", fontweight='bold'); ax.set_ylabel(y_col if 'y_col' in locals() and y_col else "", fontweight='bold')
                 for m_c in st.session_state.ai_mods:
                     try: exec(m_c, {"ax": ax, "fig": fig, "plt": plt, "sns": sns, "np": np, "pd": pd, "__builtins__": {}}, {"ax": ax, "fig": fig, "plt": plt, "sns": sns, "np": np, "pd": pd, "__builtins__": {}})
@@ -343,6 +356,7 @@ elif menu == "📊 2. 实验数据作图":
                     res = client.chat.completions.create(model="deepseek-chat", messages=[{"role": "user", "content": f"你是Matplotlib专家。已有 `fig` 和 `ax`。指令：'{ai_cmd}'。只返回Python代码，不解释。"}])
                     llm_code = res.choices[0].message.content.replace("```python", "").replace("```", "").strip()
                     if not any(w in llm_code for w in ["import", "os", "sys", "subprocess", "eval", "exec", "open"]): st.session_state.ai_mods.append(llm_code); st.rerun() 
+                
                 def get_buf(f, fmt): b = io.BytesIO(); f.savefig(b, format=fmt, dpi=300, bbox_inches="tight"); b.seek(0); return b
                 d1, d2, d3 = st.columns(3)
                 d1.download_button("📥 下载 PDF", get_buf(fig, "pdf"), "plot.pdf", "application/pdf")
@@ -358,9 +372,13 @@ elif menu == "🔭 3. 研究盲点洞察":
     
     @st.cache_data(show_spinner=False)
     def load_local_db():
-        if os.path.exists("my_master_library.csv"):
-            try: return pd.read_csv("my_master_library.csv")
-            except: return pd.DataFrame()
+        files = ["my_master_library.xlsx", "my_master_library.xls", "my_master_library.csv"]
+        for f in files:
+            if os.path.exists(f):
+                try:
+                    if f.endswith('.csv'): return pd.read_csv(f)
+                    else: return pd.read_excel(f)
+                except: continue
         return pd.DataFrame()
 
     db_df = load_local_db()
@@ -382,8 +400,9 @@ elif menu == "🔭 3. 研究盲点洞察":
                 context_data = ""
                 if not db_df.empty:
                     st.write("📁 正在唤醒后台专属私有文献库...")
-                    title_col = next((c for c in db_df.columns if 'title' in c.lower() or '标题' in c.lower() or '题名' in c.lower()), None)
-                    abs_col = next((c for c in db_df.columns if 'abstract' in c.lower() or '摘要' in c.lower()), None)
+                    title_col = next((c for c in db_df.columns if any(k in c.lower() for k in ['title', '标题', '题名'])), None)
+                    abs_col = next((c for c in db_df.columns if any(k in c.lower() for k in ['abstract', '摘要'])), None)
+                    
                     if title_col and abs_col:
                         matched = db_df[db_df[abs_col].str.contains(research_topic, na=False) | db_df[title_col].str.contains(research_topic, na=False)]
                         if not matched.empty:
@@ -450,18 +469,36 @@ elif menu == "🔭 3. 研究盲点洞察":
         st.subheader("🔥 研究热度矩阵图谱")
         if plot_data:
             df_plot = pd.DataFrame(plot_data)
-            df_plot['Y_Jitter'] = np.random.uniform(0.2, 0.8, size=len(df_plot))
-            fig_bubble, ax_bubble = plt.subplots(figsize=(10, 5), dpi=200)
+            df_plot['Y_Jitter'] = np.random.uniform(0.4, 0.6, size=len(df_plot))
+            
+            fig_bubble, ax_bubble = plt.subplots(figsize=(12, 4), dpi=200)
             fig_bubble.patch.set_facecolor('#FCFBF8'); ax_bubble.set_facecolor('#FCFBF8')
+            
             palette = {"热门": "#C87A5D", "冷门": "#4B7C9C"}
-            sns.scatterplot(data=df_plot, x="Heat", y="Y_Jitter", hue="Category", size="Heat", sizes=(300, 2500), alpha=0.7, palette=palette, ax=ax_bubble, legend=False)
+            sns.scatterplot(data=df_plot, x="Heat", y="Y_Jitter", hue="Category", 
+                            size="Heat", sizes=(1000, 5000), alpha=0.6, 
+                            palette=palette, ax=ax_bubble, legend=False)
+            
             for _, row in df_plot.iterrows():
-                ax_bubble.text(row["Heat"], row["Y_Jitter"], row["Topic"], ha='center', va='center', fontsize=10, fontweight='bold', color="#3A3533", fontfamily='SimHei')
-            ax_bubble.set_xlabel("热度指数 (Heat Index)", fontweight='bold', fontsize=12)
+                t_color = "#FFFFFF" if row["Heat"] > 60 else "#333333"
+                ax_bubble.text(row["Heat"], row["Y_Jitter"], row["Topic"], 
+                               ha='center', va='center', fontsize=9, fontweight='bold', 
+                               color=t_color, fontfamily='SimHei')
+            
+            ax_bubble.set_xlim(-5, 105)
+            ax_bubble.set_ylim(0, 1)
+            
+            ax_bubble.axvspan(-5, 50, color='#4B7C9C', alpha=0.08)
+            ax_bubble.axvspan(50, 105, color='#C87A5D', alpha=0.08)
+            ax_bubble.text(20, 0.85, "🌊 蓝海潜力区 (Low Heat)", color="#4B7C9C", fontweight="bold", alpha=0.6)
+            ax_bubble.text(75, 0.85, "🔥 红海内卷区 (High Heat)", color="#C87A5D", fontweight="bold", alpha=0.6)
+
+            ax_bubble.set_xlabel("研究热度指数 (Heat Index) → 越靠右代表研究越卷", fontweight='bold', fontsize=10)
             ax_bubble.set_yticks([]); ax_bubble.set_ylabel("")
-            sns.despine(left=True)
+            sns.despine(left=True, bottom=False)
+            plt.tight_layout()
             st.pyplot(fig_bubble)
-            st.caption("👆 **解码**：气泡越大、越靠右（暖色），代表领域高度内卷；气泡越小、越靠左（冷色），代表潜力巨大的科研盲点。")
+            st.caption("👆 **解码**：气泡落入左侧蓝色区域代表目前关注度低，是绝佳的创新切入点！")
         else: st.warning("⚠️ 大模型未能成功输出图谱数据，已为您跳过渲染。")
         
         st.success("📝 **AI 战略洞察报告** (下方可一键导出为 Word 文档)")
