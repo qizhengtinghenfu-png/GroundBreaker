@@ -6,6 +6,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+import urllib.request
 import fitz
 import requests
 import io
@@ -17,9 +19,29 @@ import json
 import time
 from openai import OpenAI
 
-# 修复 Matplotlib 中文显示为方块
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS', 'sans-serif']
-plt.rcParams['axes.unicode_minus'] = False
+# ==========================================
+# 🚀 导师特制：全自动云端中文字体修复补丁
+# ==========================================
+@st.cache_resource
+def setup_chinese_font():
+    font_path = "SimHei.ttf"
+    # 如果云端没有这个字体，自动去稳定CDN下载
+    if not os.path.exists(font_path):
+        try:
+            font_url = "https://cdn.jsdelivr.net/gh/StellarCN/scp_zh@master/fonts/SimHei.ttf"
+            urllib.request.urlretrieve(font_url, font_path)
+        except:
+            pass # 容错处理
+    
+    # 强制让 Matplotlib 加载并使用这个中文字体
+    if os.path.exists(font_path):
+        fm.fontManager.addfont(font_path)
+        plt.rcParams['font.sans-serif'] = fm.FontProperties(fname=font_path).get_name()
+    else:
+        plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS', 'sans-serif']
+    plt.rcParams['axes.unicode_minus'] = False
+
+setup_chinese_font() # 运行补丁
 
 # ==========================================
 # 页面基础设置与 UI 注入
@@ -469,31 +491,36 @@ elif menu == "🔭 3. 研究盲点洞察":
         st.subheader("🔥 研究热度矩阵图谱")
         if plot_data:
             df_plot = pd.DataFrame(plot_data)
-            df_plot['Y_Jitter'] = np.random.uniform(0.4, 0.6, size=len(df_plot))
+            # Y轴扰动范围拉开，气泡错落有致
+            df_plot['Y_Jitter'] = np.random.uniform(0.2, 0.8, size=len(df_plot))
             
-            fig_bubble, ax_bubble = plt.subplots(figsize=(12, 4), dpi=200)
+            # 画布变大！改成 14x7 的宽银幕比例
+            fig_bubble, ax_bubble = plt.subplots(figsize=(14, 7), dpi=200)
             fig_bubble.patch.set_facecolor('#FCFBF8'); ax_bubble.set_facecolor('#FCFBF8')
             
             palette = {"热门": "#C87A5D", "冷门": "#4B7C9C"}
+            # 气泡基础大小再放大一点，填满画面
             sns.scatterplot(data=df_plot, x="Heat", y="Y_Jitter", hue="Category", 
-                            size="Heat", sizes=(1000, 5000), alpha=0.6, 
+                            size="Heat", sizes=(2000, 8000), alpha=0.6, 
                             palette=palette, ax=ax_bubble, legend=False)
             
             for _, row in df_plot.iterrows():
                 t_color = "#FFFFFF" if row["Heat"] > 60 else "#333333"
+                # 去掉了可能引起冲突的 fontfamily 参数，直接用全局字体
                 ax_bubble.text(row["Heat"], row["Y_Jitter"], row["Topic"], 
-                               ha='center', va='center', fontsize=9, fontweight='bold', 
-                               color=t_color, fontfamily='SimHei')
+                               ha='center', va='center', fontsize=11, fontweight='bold', 
+                               color=t_color)
             
             ax_bubble.set_xlim(-5, 105)
             ax_bubble.set_ylim(0, 1)
             
             ax_bubble.axvspan(-5, 50, color='#4B7C9C', alpha=0.08)
             ax_bubble.axvspan(50, 105, color='#C87A5D', alpha=0.08)
-            ax_bubble.text(20, 0.85, "🌊 蓝海潜力区 (Low Heat)", color="#4B7C9C", fontweight="bold", alpha=0.6)
-            ax_bubble.text(75, 0.85, "🔥 红海内卷区 (High Heat)", color="#C87A5D", fontweight="bold", alpha=0.6)
+            # 背景文字移到角落
+            ax_bubble.text(2, 0.92, "🌊 蓝海潜力区 (Low Heat)", color="#4B7C9C", fontweight="bold", fontsize=12, alpha=0.8)
+            ax_bubble.text(78, 0.92, "🔥 红海内卷区 (High Heat)", color="#C87A5D", fontweight="bold", fontsize=12, alpha=0.8)
 
-            ax_bubble.set_xlabel("研究热度指数 (Heat Index) → 越靠右代表研究越卷", fontweight='bold', fontsize=10)
+            ax_bubble.set_xlabel("研究热度指数 (Heat Index) → 越靠右代表研究越卷", fontweight='bold', fontsize=12)
             ax_bubble.set_yticks([]); ax_bubble.set_ylabel("")
             sns.despine(left=True, bottom=False)
             plt.tight_layout()
