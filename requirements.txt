@@ -1,0 +1,9 @@
+streamlit
+pandas
+numpy
+matplotlib
+PyMuPDF
+requests
+seaborn
+markdown
+openai
